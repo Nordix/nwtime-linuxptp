@@ -33,7 +33,7 @@ OBJ	= bmc.o clock.o clockadj.o clockcheck.o config.o designated_fsm.o \
  e2e_tc.o fault.o $(FILTERS) fsm.o hash.o interface.o monitor.o msg.o phc.o \
  pmc_common.o port.o port_signaling.o pqueue.o print.o ptp4l.o p2p_tc.o rtnl.o \
  $(SECURITY) $(SERVOS) sk.o stats.o tc.o $(TRANSP) telecom.o tlv.o tsproc.o \
- unicast_client.o unicast_fsm.o unicast_service.o util.o version.o
+ unicast_client.o unicast_fsm.o unicast_service.o util.o popcorn_filter.o version.o
 
 OBJECTS	= $(OBJ) hwstamp_ctl.o nsm.o phc2sys.o phc_ctl.o pmc.o pmc_agent.o \
  pmc_common.o sysoff.o timemaster.o $(TS2PHC) tz2alt.o

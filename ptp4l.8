@@ -902,6 +902,23 @@ respectively.
 The default is 0.0.
 
 .TP
+.B popcorn_spike_filter
+Enable the popcorn spike filter to suppress sudden offset spikes in the servo.
+When enabled, the filter detects offset changes that exceed the threshold
+(defined by popcorn_spike_gate) and suppresses them to prevent clock
+instability. The filter only operates when the servo is in SERVO_LOCKED state
+and requires at least two offset samples. Based on RFC 5905.
+The default is 0 (disabled).
+
+.TP
+.B popcorn_spike_gate
+The threshold multiplier for the popcorn spike filter. An offset sample is
+considered a spike and suppressed if the offset delta exceeds this value
+multiplied by the current offset jitter, and the time since the last offset
+is less than twice the sync interval.
+The default is 3.
+
+.TP
 .B productDescription
 The product description string. Allowed values must be of the form
 manufacturerName;modelNumber;instanceIdentifier and contain at most 64

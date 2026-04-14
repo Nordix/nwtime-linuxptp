@@ -137,6 +137,13 @@ int port_number(struct port *p);
 const char *port_log_name(struct port *p);
 
 /**
+ * Obtain logSyncInterval for the port.
+ * @param p A port instance.
+ * @return logSyncInterval.
+ */
+int port_log_sync_interval(struct port *p);
+
+/**
  * Obtain the link status of a port.
  * @param p        A port instance.
  * @return         One (1) if the link is up, zero otherwise.

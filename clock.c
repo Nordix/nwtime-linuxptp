@@ -25,12 +25,14 @@
 #include <sys/ioctl.h>
 #include <sys/queue.h>
 #include <sys/stat.h>
+#include <math.h>
 
 #include "address.h"
 #include "bmc.h"
 #include "clock.h"
 #include "clockadj.h"
 #include "clockcheck.h"
+#include "config.h"
 #include "foreign.h"
 #include "filter.h"
 #include "missing.h"
@@ -47,6 +49,7 @@
 #include "tz.h"
 #include "uds.h"
 #include "util.h"
+#include "popcorn_filter.h"
 
 #define N_CLOCK_PFD (N_POLLFD + 1) /* one extra per port, for the fault timer */
 
@@ -151,6 +154,9 @@ struct clock {
 	struct time_zone tz[MAX_TIME_ZONES];
 	struct ClockIdentity ext_gm_identity;
 	int ext_gm_steps_removed;
+	struct popcorn_filter *filter;
+	int offset_filter_enabled;
+	int popcorn_spike_gate;
 };
 
 struct clock the_clock;
@@ -368,6 +374,9 @@ void clock_destroy(struct clock *c)
 	stats_destroy(c->stats.offset);
 	stats_destroy(c->stats.freq);
 	stats_destroy(c->stats.delay);
+	if (c->filter) {
+		popcorn_filter_destroy(c->filter);
+	}
 	if (c->sanity_check) {
 		clockcheck_destroy(c->sanity_check);
 	}
@@ -1202,6 +1211,9 @@ struct clock *clock_create(enum clock_type type, struct config *config,
 		config_get_int(config, NULL, "G.8275.defaultDS.localPriority");
 	c->max_steps_removed = config_get_int(config, NULL,"maxStepsRemoved");
 	c->clock_class_threshold = config_get_int(config, NULL, "clock_class_threshold");
+	c->offset_filter_enabled = config_get_int(config, NULL, "popcorn_spike_filter");
+	c->popcorn_spike_gate = config_get_int(config, NULL, "popcorn_spike_gate");
+	c->filter = popcorn_filter_create();
 
 	/* Harmonize the twoStepFlag with the time_stamping option. */
 	if (config_harmonize_onestep(config)) {
@@ -2105,6 +2117,11 @@ enum servo_state clock_synchronize(struct clock *c, tmv_t ingress, tmv_t origin)
 	}
 
 	offset = tmv_to_nanoseconds(c->master_offset);
+	if (c->offset_filter_enabled && popcorn_filter_sample(c->filter, c, offset)) {
+		pr_debug("clock %d: popcorn filter: spike suppressed (%.0f ns)\n",
+			 c->clkid, offset * 1e9);
+		return c->servo_state;
+	}
 	adj = servo_sample(c->servo, offset, tmv_to_nanoseconds(ingress),
 			   weight, &state);
 	c->servo_state = state;
@@ -2382,4 +2399,14 @@ struct servo *clock_servo(struct clock *c)
 enum servo_state clock_servo_state(struct clock *c)
 {
 	return c->servo_state;
+}
+
+clockid_t clock_clkid(struct clock *c)
+{
+	return c->clkid;
+}
+
+int clock_popcorn_spike_gate(struct clock *c)
+{
+	return c->popcorn_spike_gate;
 }
