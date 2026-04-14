@@ -3402,6 +3402,11 @@ const char *port_log_name(struct port *p)
 	return p->log_name;
 }
 
+int port_log_sync_interval(struct port *p)
+{
+	return p->logSyncInterval;
+}
+
 int port_link_status_get(struct port *p)
 {
 	return !!(p->link_status & LINK_UP);
