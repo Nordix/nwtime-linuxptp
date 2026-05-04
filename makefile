@@ -114,8 +114,22 @@ install: $(PRG)
 		[ -f $(srcdir)$$x ] && install -p -m 644 -t $(DESTDIR)$(man8dir) $(srcdir)$$x ; \
 	done
 
+test_popcorn_filter: tests/test_popcorn_filter.c popcorn_filter.c popcorn_filter.h
+	$(CC) $(CFLAGS) -I. -o $@ tests/test_popcorn_filter.c popcorn_filter.c -lm -lrt
+
+test: test_popcorn_filter
+	./test_popcorn_filter
+	rm -f test_popcorn_filter
+
+integration-test:
+	tests/cleanup_ptp_test_vms.sh
+	tests/setup_ptp_test_vms.sh
+	tests/run_ptp_integration_test.sh; rc=$$?; tests/cleanup_ptp_test_vms.sh; exit $$rc
+
+test-all: test integration-test
+
 clean:
-	rm -f $(OBJECTS) $(DEPEND) $(PRG)
+	rm -f $(OBJECTS) $(DEPEND) $(PRG) test_popcorn_filter
 
 distclean: clean
 	rm -f .version
@@ -134,4 +148,4 @@ ifneq ($(MAKECMDGOALS), distclean)
 endif
 endif
 
-.PHONY: all force clean distclean
+.PHONY: all force clean distclean test integration-test test-all
