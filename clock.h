@@ -277,6 +277,20 @@ struct servo *clock_servo(struct clock *c);
 enum servo_state clock_servo_state(struct clock *c);
 
 /**
+ * Obtain the clock ID.
+ * @param c The clock instance.
+ * @return The clock ID.
+ */
+clockid_t clock_clkid(struct clock *c);
+
+/**
+ * Obtain the popcorn spike gate threshold.
+ * @param c The clock instance.
+ * @return The popcorn spike gate value.
+ */
+int clock_popcorn_spike_gate(struct clock *c);
+
+/**
  * Obtain the slave monitor instance from a clock.
  * @param c The clock instance.
  * @return  The slave monitor associated with the clock.
